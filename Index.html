@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Rent Assurance Fund - Join</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    form {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px 30px 30px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 450px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background logo */
+    form::before {
+      content: "";
+      background: url('logo.png') no-repeat center;
+      background-size: 150px auto;
+      opacity: 0.05;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150px;
+      height: 150px;
+      transform: translate(-50%, -50%);
+      z-index: 0;
+    }
+
+    /* Logo at top-left */
+    .form-logo {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 60px;
+      height: auto;
+      z-index: 1;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1877f2;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #050505;
+      position: relative;
+      z-index: 1;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+      position: relative;
+      z-index: 1;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #1877f2;
+      box-shadow: 0 0 0 2px rgba(24,119,242,0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      width: 100%;
+      background-color: #1877f2;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+      z-index: 1;
+    }
+
+    button:hover {
+      background-color: #166fe5;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <form id="joinForm">
+    <!-- Logo top-left -->
+    <img src="logo.png" alt="Rent Assurance Fund" class="form-logo">
+
+    <h1>Rent Assurance Fund Membership Form</h1>
+
+    <label>First Name<input name="firstName" required></label>
+    <label>Last Name<input name="lastName"></label>
+    <label>ID Number<input name="idNumber" required></label>
+    <label>Phone (+27...)<input name="phone" required></label>
+    <label>Email<input name="email" type="email"></label>
+    <label>Address<textarea name="address"></textarea></label>
+
+    <label>Plan
+      <select name="plan">
+        <option value="standard">Standard (R50)</option>
+        <option value="flexi">Flexi (R100)</option>
+        <option value="premium">Premium (R200)</option>
+      </select>
+    </label>
+
+    <label>Billing Day (1-28)<input name="billingDay" type="number" min="1" max="28" value="1"></label>
+
+    <label>Payment Method
+      <select name="paymentMethod" required>
+        <option value="eft">EFT</option>
+        <option value="mobile">Mobile Payment</option>
+        <option value="cash">Cash Deposit</option>
+      </select>
+    </label>
+
+    <button type="submit">Submit</button>
+    <div id="result"></div>
+  </form>
+
+<script>
+document.getElementById('joinForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const payload = {};
+  form.forEach((v,k)=>{
+    payload[k] = v;
+  });
+
+  // Generate membership number: RAF [YEAR] [first 6 digits of ID number]
+  const idNumber = payload.idNumber || '';
+  const year = new Date().getFullYear();
+  const first6 = idNumber.slice(0,6);
+  const membershipNumber = `RAF ${year} ${first6}`;
+
+  payload.membershipNumber = membershipNumber;
+
+  // Send to backend
+  const res = await fetch('/api/members', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById('result').innerText = 'Registered! Membership number: ' + membershipNumber;
+  } else {
+    document.getElementById('result').innerText = 'Error: ' + (data.error || 'unknown');
+  }
+});
+</script>
+</body>
+</html>
